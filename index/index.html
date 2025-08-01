@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <title>Rompecabezas Especial</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#E1F5FE;font-family:'Segoe UI', sans-serif;color:#37474F;text-align:center;">
+
+<!-- Pantalla de inicio -->
+<div id="pantalla-inicio" style="padding:40px;">
+  <h1 style="font-size:2.4em;color:#0288D1;">✨ Nazely ✨</h1>
+  <p style="color:#546E7A;font-size:1.1em;">Un juego especial solo para ti 💙</p>
+  <div style="display:inline-block;padding:15px;background:#FFFFFF;border-radius:16px;box-shadow:0 4px 10px rgba(0,0,0,0.1);max-width:95vw;">
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;">
+      <!-- Collage -->
+      <img src="imagenes/collage1.jpeg" width="100" height="100" style="margin:5px;border-radius:12px;box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+      <img src="imagenes/collage2.jpeg" width="100" height="100" style="margin:5px;border-radius:12px;box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+      <img src="imagenes/collage3.jpeg" width="100" height="100" style="margin:5px;border-radius:12px;box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+      <img src="imagenes/collage4.jpeg" width="100" height="100" style="margin:5px;border-radius:12px;box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+      <img src="imagenes/collage5.jpeg" width="100" height="100" style="margin:5px;border-radius:12px;box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+      <img src="imagenes/collage6.jpeg" width="100" height="100" style="margin:5px;border-radius:12px;box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+    </div>
+    <button id="btn-empezar" style="margin-top:20px;padding:12px 28px;font-size:1.2em;color:white;background:#4FC3F7;border:none;border-radius:10px;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.2);transition:all 0.3s ease;">
+      💫 Empezar
+    </button>
+  </div>
+</div>
+
+<!-- Menú de niveles -->
+<div id="menu-niveles" style="display:none;padding:20px;">
+  <h2 style="color:#0288D1;font-size:1.6em;">🧩 Elige un rompecabezas</h2>
+  <div id="lista-niveles" style="display:flex;flex-wrap:wrap;justify-content:center;gap:15px;padding-top:10px;"></div>
+</div>
+
+<!-- Juego activo -->
+<div id="juego" style="display:none;padding:20px;"></div>
+
+<!-- Final -->
+<div id="final-container" style="display:none;padding:40px;">
+  <h2 style="font-size:2em;color:#0288D1;">🎉 ¡Completaste todos! 🎉</h2>
+  <p style="font-size:1.2em;color:#546E7A;">¡Afloja de una buena vez!</p>
+  <img id="final-img" src="imagenes/final.jpeg" width="150%" style="max-width:320px;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);transition: transform 0.4s ease;">
+</div>
+
+<audio id="musica" src="musica.mp3"></audio>
+
+<script>
+const TOTAL = 5;
+let completados = Array(TOTAL).fill(false);
+let actual = null;
+
+const inicio = document.getElementById('pantalla-inicio');
+const niveles = document.getElementById('menu-niveles');
+const lista = document.getElementById('lista-niveles');
+const juego = document.getElementById('juego');
+const finalCont = document.getElementById('final-container');
+
+document.getElementById('btn-empezar').onclick = () => {
+  inicio.style.display = 'none';
+  mostrarMenu();
+};
+
+function mostrarMenu() {
+  lista.innerHTML = '';
+  niveles.style.display = 'block';
+  juego.style.display = 'none';
+  finalCont.style.display = 'none';
+  for (let i = 0; i < TOTAL; i++) {
+    const div = document.createElement('div');
+    div.style.width = '100px';
+    div.style.textAlign = 'center';
+    div.style.cursor = 'pointer';
+    div.style.padding = '10px';
+    div.style.borderRadius = '12px';
+    div.style.background = '#FFFFFF';
+    div.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+    const imgSrc = completados[i] ? `imagenes/img${i + 1}completa.jpeg` : `imagenes/img${i + 1}_pieza0.jpg`;
+    div.innerHTML = `
+      <img src="${imgSrc}" width="90" style="border-radius:8px;"><br>
+      <strong>Nivel ${i + 1}</strong><br>
+      <span style="color:#0288D1;">${completados[i] ? '✅ Listo' : '⏳ Pendiente'}</span>
+    `;
+    div.onclick = () => {
+      actual = i;
+      crearRompecabezas(i);
+    };
+    lista.appendChild(div);
+  }
+}
+
+function crearRompecabezas(num) {
+  niveles.style.display = 'none';
+  juego.style.display = 'block';
+  juego.innerHTML = `<h3 style="color:#0277BD;">Nivel ${num + 1}</h3>`;
+
+  const cont = document.createElement('table');
+  cont.setAttribute('border', 0);
+  cont.style.margin = 'auto';
+  cont.style.borderSpacing = '5px';
+
+  const piezas = [...Array(9).keys()];
+  piezas.sort(() => Math.random() - 0.5);
+
+  piezas.forEach((val, i) => {
+    const r = Math.floor(i / 3), c = i % 3;
+    const tr = cont.rows[r] || cont.insertRow(r);
+    const td = tr.insertCell(c);
+    const img = document.createElement('img');
+    img.src = `imagenes/img${num + 1}_pieza${val}.jpg`;
+    img.width = 90;
+    img.height = 90;
+    img.style.cursor = 'pointer';
+    img.style.border = '2px solid #B3E5FC';
+    img.style.borderRadius = '6px';
+    img.style.transition = 'transform 0.2s ease';
+    img.dataset.orden = val;
+    img.onclick = seleccionarPieza;
+    td.appendChild(img);
+  });
+
+  juego.appendChild(cont);
+  const msg = document.createElement('div');
+  msg.id = 'msg';
+  msg.style.margin = '15px';
+  msg.style.fontSize = '1.1em';
+  juego.appendChild(msg);
+
+  const btnVolver = document.createElement('button');
+  btnVolver.innerText = '⬅️ Menú';
+  btnVolver.style.margin = '10px';
+  btnVolver.style.padding = '10px 20px';
+  btnVolver.style.background = '#4FC3F7';
+  btnVolver.style.color = '#fff';
+  btnVolver.style.border = 'none';
+  btnVolver.style.borderRadius = '10px';
+  btnVolver.style.cursor = 'pointer';
+  juego.appendChild(btnVolver);
+  btnVolver.onclick = mostrarMenu;
+}
+
+let seleccionada = null;
+function seleccionarPieza(e) {
+  const img = e.target;
+  if (!seleccionada) {
+    seleccionada = img;
+    img.style.transform = 'scale(1.1)';
+    img.style.border = '3px solid #039BE5';
+  } else {
+    [img.src, seleccionada.src] = [seleccionada.src, img.src];
+    [img.dataset.orden, seleccionada.dataset.orden] = [seleccionada.dataset.orden, img.dataset.orden];
+    seleccionada.style.transform = 'scale(1)';
+    seleccionada.style.border = '2px solid #B3E5FC';
+    seleccionada = null;
+    verificar();
+  }
+}
+
+function verificar() {
+  const imgs = juego.querySelectorAll('td img');
+  const ok = Array.from(imgs).every((im, i) => parseInt(im.dataset.orden) === i);
+  const msg = document.getElementById('msg');
+  if (ok) {
+    completados[actual] = true;
+    juego.innerHTML = `
+      <h3 style="color:#0277BD;">¡Bien hecho!</h3>
+      <img src="imagenes/img${actual + 1}completa.jpeg" width="270" style="border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.2);margin:10px;">
+      <p style="font-size:1.1em;color:#388E3C;">✅ Has completado el nivel ${actual + 1}</p>
+    `;
+
+    const btnVolver = document.createElement('button');
+    btnVolver.innerText = '⬅️ Menú';
+    btnVolver.style.margin = '10px';
+    btnVolver.style.padding = '10px 20px';
+    btnVolver.style.background = '#4FC3F7';
+    btnVolver.style.color = '#fff';
+    btnVolver.style.border = 'none';
+    btnVolver.style.borderRadius = '10px';
+    btnVolver.style.cursor = 'pointer';
+    btnVolver.onclick = mostrarMenu;
+    juego.appendChild(btnVolver);
+
+    // Nuevo botón: Siguiente nivel
+    if (actual + 1 < TOTAL) {
+      const btnSiguiente = document.createElement('button');
+      btnSiguiente.innerText = '➡️ Siguiente';
+      btnSiguiente.style.margin = '10px';
+      btnSiguiente.style.padding = '10px 20px';
+      btnSiguiente.style.background = '#81C784';
+      btnSiguiente.style.color = '#fff';
+      btnSiguiente.style.border = 'none';
+      btnSiguiente.style.borderRadius = '10px';
+      btnSiguiente.style.cursor = 'pointer';
+      btnSiguiente.onclick = () => {
+        actual += 1;
+        crearRompecabezas(actual);
+      };
+      juego.appendChild(btnSiguiente);
+    }
+
+    if (completados.every(x => x)) {
+      setTimeout(mostrarFinal, 1500);
+    }
+  } else {
+    msg.innerText = '❌ Aún no está correcto';
+  }
+}
+
+function mostrarFinal() {
+  juego.style.display = 'none';
+  niveles.style.display = 'none';
+  finalCont.style.display = 'block';
+  const img = document.getElementById('final-img');
+  let rot = 0;
+  const intv = setInterval(() => {
+    rot += 5;
+    img.style.transform = `rotate(${rot}deg) scale(1.05)`;
+    if (rot >= 360) {
+      clearInterval(intv);
+      img.style.transform = 'rotate(0deg) scale(1.05)';
+      img.style.boxShadow = '0 0 18px #03A9F4';
+    }
+  }, 20);
+  document.getElementById('musica').play();
+}
+</script>
+</body>
+</html>
+
+
+
